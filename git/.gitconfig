@@ -1,0 +1,44 @@
+[user]
+	name = alanndz
+	email = alanndz7@gmail.com
+[credential "https://github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
+[core]
+	editor = nano
+[alias]
+	s = status
+	p = push
+	pl = pull
+	pf = push --force
+	l = log
+	f = fetch
+	r = remote
+	rv = remote --verbose
+	ru = remote update
+	rrm = remote remove
+	rsu = remote set-url
+	ra = remote add
+	rev = revert
+	re = reset
+	cp = cherry-pick
+	cpc = cherry-pick --continue
+	cpa = cherry-pick --abort
+	cps = cherry-pick --skip
+	rh = reset --hard
+	rs = reset --soft
+	rb = rebase
+	rbi = rebase --interactive
+	rbc = rebase --continue
+	rba = rebase --abort
+	rbs = rebase --skip
+	d = diff
+	dc = diff --cached
+	b = bisect
+	c = commit
+	cs = commit --signoff
+	ca = commit --amend
+	cn = commit --no-edit
+	casm = commit -asm
+	gerrit = push gerrit HEAD:refs/for/pie
+	add-change-id = "!EDITOR='sed -i -re s/^pick/e/' sh -c 'git rebase -i $1 && while test -f .git/rebase-merge/interactive; do git commit --amend --no-edit && git rebase --continue; done' -"
