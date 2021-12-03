@@ -4,7 +4,7 @@ module_target="$HOME"
 module_preinstall() {
 	sudo apt-get update -qq && \
 	sudo apt-get upgrade -y && \
-	sudi apt-get install --no-install-recommends -y \
+	sudo apt-get install --no-install-recommends -y \
 	        autoconf \
 		autogen \
 		automake \
@@ -62,7 +62,7 @@ module_preinstall() {
 		texinfo \
 		tzdata \
 		u-boot-tools \
-		unzip_ \
+		unzip \
 		wget \
 		xz-utils \
 		zip \
