@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+str=$1
+stt=$2
+
+if [ -z $stt ]
+then
+    grep --color -r "$str" *
+else
+    grep --color -rl "$str" * | xargs sed -i "s|$str|$stt|g"
+fi
