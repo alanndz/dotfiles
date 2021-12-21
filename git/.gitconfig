@@ -21,7 +21,7 @@
 	ra = remote add
 	rev = revert
 	re = reset
-	cp = cherry-pick
+	cp = cherry-pick -s
 	cpc = cherry-pick --continue
 	cpa = cherry-pick --abort
 	cps = cherry-pick --skip
