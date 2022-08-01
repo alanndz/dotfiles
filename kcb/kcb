@@ -129,6 +129,10 @@ enable_dtbo() {
   scripts/config --file out/.config -e CONFIG_BUILD_ARM64_DTBO_IMG
 }
 
+disable_auto_localv() {
+  scripts/config --file out/.config -d CONFIG_LOCALVERSION_AUTO
+}
+
 xcache() {
   export CCACHE_EXEC=$(which ccache)
   export USE_CCACHE=1
@@ -172,6 +176,7 @@ rm -rf ${DTBO}
 m $CONFIG > /dev/null
 if [[ ! -n $LTO ]]; then disable_lto; fi
 enable_dtbo
+disable_auto_localv
 m > >(tee out/${LOG}) 2> >(tee out/${LOGE} >&2)
 
 END=$(date +"%s")
