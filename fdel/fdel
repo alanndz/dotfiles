@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+type=$1
+str=$2
+stt=$3
+
+if [ -z $stt ]
+then
+    find . -type "$type" -name "*$str*"
+else
+    find . -type "$type" -name "*$str*" | xargs rm
+fi
