@@ -158,7 +158,8 @@ m() {
 
 if [[ -n ${REGEN} ]]; then
   m $CONFIG
-  m menuconfig
+  #m menuconfig
+  nano out/.config
   m savedefconfig
   cp out/defconfig arch/arm64/configs/$CONFIG
   exit 0
