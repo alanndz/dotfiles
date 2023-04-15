@@ -102,5 +102,7 @@ if [[ -z "$@" ]]; then
     usage
     exit 1
 fi
-
-install_mod "$1"
+for mod in $@
+do
+    install_mod "$mod"
+done
