@@ -21,6 +21,7 @@ Options:
  -n | --codename  <Codename>
  -C | --directory <Directory>
  -D | --defconfig <Defconfig>
+ -j | --jobs      <Jobs number>
  -e | --env       <Env>
  -t | --telegram  <Chat id> <telegram bot>
  -r | --regen     : Regenerate configs
@@ -44,6 +45,7 @@ while (( ${#} )); do
        "-n"|"--codename") shift; CODENAME="-${1}" ;;
        "-C"|"--directory") shift; DIR=${1} ;;
        "-D"|"--defconfig") shift; CONFIG=${1} ;;
+       "-j"|"--jobs") shift; JOBS=${1} ;;
        "-e"|"--env") shift; ENV=${1} ;;
        "-r"|"--regen") REGEN=true ;;
        "-t"|"--telegram") shift; _conf ${1} ${2}; shift;;
@@ -71,6 +73,7 @@ PHONE="Poco X3 Pro"
 DEVICE="vayu"
 CONFIG=${CONFIG:-vayu_defconfig}
 CODENAME=${CODENAME:--Testing}
+JOBS=${JOBS:-$(nproc --all)}
 CHAT_ID="$(openssl enc -base64 -d <<< `cat $conf/.chat_id`)"
 TOKEN="$(openssl enc -base64 -d <<< `cat $conf/.token`)"
 DEVELOPER="alanndz"
@@ -144,7 +147,7 @@ xcache() {
 xcache
 
 m() {
-  make -j$(nproc --all) O=out \
+  make -j${JOBS} O=out \
                         ARCH=arm64 \
                         LOCALVERSION=${KVERSION} \
                         CC="ccache clang" \
