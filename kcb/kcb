@@ -65,7 +65,7 @@ fi
 
 # Setup environment
 KDIR=$(pwd)
-TC="${KDIR}/../tools"
+TC="${HOME}/.kcb-tools"
 AK=${TC}/AnyKernel
 KERNEL_NAME="aLn"
 KERNEL_TYPE="EAS"
