@@ -5,7 +5,7 @@
 	helper = 
 	helper = !/usr/bin/gh auth git-credential
 [core]
-	editor = nano
+	editor = vim
 [alias]
 	s = status
 	p = push
