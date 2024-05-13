@@ -40,6 +40,6 @@
 	ca = commit --amend
 	cn = commit --no-edit
 	casm = commit -asm
-	oneline = log --oneline
+	oneline = log --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset commit by %C(magenta)%cN%Creset' --abbrev-commit
 	gerrit = push gerrit HEAD:refs/for/pie
 	add-change-id = "!EDITOR='sed -i -re s/^pick/e/' sh -c 'git rebase -i $1 && while test -f .git/rebase-merge/interactive; do git commit --amend --no-edit && git rebase --continue; done' -"
