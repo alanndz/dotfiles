@@ -154,9 +154,9 @@ m() {
   make -j${JOBS} O=out \
                         ARCH=arm64 \
                         LOCALVERSION=${KVERSION} \
-                        CROSS_COMPILE="ccache ${GCC64}" \
-                        CROSS_COMPILE_ARM32="ccache ${GCC32}" \
-                        CROSS_COMPILE_COMPAT="ccache ${GCC32}" \
+                        CROSS_COMPILE="${GCC64}" \
+                        CROSS_COMPILE_ARM32="${GCC32}" \
+                        CROSS_COMPILE_COMPAT="${GCC32}" \
                         ${ENV} \
                         ${@}
 }
