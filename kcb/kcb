@@ -83,8 +83,10 @@ AK_BRANCH="vayu"
 if [[ ! -d $TC/gcc64 || ! -d $TC/gcc32 ||  ! -d $AK ]]; then
     # git clone https://gitlab.com/alanndz/clang-aosp $TC/clang --depth=1 --no-tags --single-branch
     # git clone https://android.googlesource.com/platform/prebuilts/gas/linux-x86/ -b master $TC/gcc --depth=1 --single-branch --no-tags
-    git clone https://github.com/arter97/arm64-gcc --depth=1 $TC/gcc64
-    git clone https://github.com/arter97/arm32-gcc --depth=1 $TC/gcc32
+    #git clone https://github.com/arter97/arm64-gcc --depth=1 $TC/gcc64
+    #git clone https://github.com/arter97/arm32-gcc --depth=1 $TC/gcc32
+    git clone https://github.com/silont-project/aarch64-elf-gcc -b arm64/11 --depth=1 $TC/gcc64
+    git clone https://github.com/silont-project/arm-eabi-gcc -b arm/11 --depth=1 $TC/gcc32 
     git clone https://github.com/alanndz/AnyKernel3 -b $AK_BRANCH ${AK}
 fi
 
