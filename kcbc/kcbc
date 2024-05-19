@@ -80,11 +80,9 @@ DEVELOPER="alanndz"
 HOST="noob_vayu-dev"
 AK_BRANCH="vayu"
 
-if [[ ! -d $TC/gcc64 || ! -d $TC/gcc32 ||  ! -d $AK ]]; then
-    # git clone https://gitlab.com/alanndz/clang-aosp $TC/clang --depth=1 --no-tags --single-branch
-    # git clone https://android.googlesource.com/platform/prebuilts/gas/linux-x86/ -b master $TC/gcc --depth=1 --single-branch --no-tags
-    git clone https://github.com/silont-project/aarch64-elf-gcc -b arm64/11 --depth=1 $TC/gcc64
-    git clone https://github.com/silont-project/arm-eabi-gcc -b arm/11 --depth=1 $TC/gcc32
+if [[ ! -d $TC/clang || ! -d $TC/gcc || ! -d $AK ]]; then
+    git clone https://gitlab.com/alanndz/clang-aosp $TC/clang --depth=1 --no-tags --single-branch
+    git clone https://android.googlesource.com/platform/prebuilts/gas/linux-x86/ -b master $TC/gcc --depth=1 --single-branch --no-tags
     git clone https://github.com/alanndz/AnyKernel3 -b $AK_BRANCH ${AK}
 fi
 
@@ -119,10 +117,10 @@ LOGE=$(echo ${ZIP_NAME} | sed "s/.zip/.error.log/")
 IMG="$KDIR/out/arch/arm64/boot/Image"
 DTBO="$KDIR/out/arch/arm64/boot/dtbo.img"
 DTB="$KDIR/out/arch/arm64/boot/dts/qcom"
-CL="$TC/gcc64"
-export PATH="${CL}/bin:${TC}/gcc32/bin:$PATH"
+CL="$TC/clang"
+export PATH="${CL}/bin:$PATH"
 export LD_LIBRARY_PATH="${CL}/lib:$LD_LIBRARY_PATH"
-# KBUILD_COMPILER_STRING=$("${CL}/bin/clang" --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
+KBUILD_COMPILER_STRING=$("${CL}/bin/clang" --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
 
 START=$(date +"%s")
 
@@ -152,9 +150,11 @@ m() {
   make -j${JOBS} O=out \
                         ARCH=arm64 \
                         LOCALVERSION=${KVERSION} \
-                        CROSS_COMPILE="${TC}/gcc64/bin/aarch64-elf-" \
-                        CROSS_COMPILE_ARM32="${TC}/gcc32/bin/arm-eabi-" \
-                        CROSS_COMPILE_COMPAT="${TC}/gcc32/bin/arm-eabi-" \
+                        CC="ccache clang" \
+                        LLVM=1 \
+                        LLVM_IAS=1 \
+                        CROSS_COMPILE="${TC}/gcc/aarch64-linux-gnu-" \
+                        CROSS_COMPILE_ARM32="${TC}/gcc/arm-linux-gnueabi-" \
                         ${ENV} \
                         ${@}
 }
