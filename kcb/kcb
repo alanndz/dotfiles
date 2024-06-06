@@ -11,7 +11,7 @@
 export TZ=":Asia/Makassar"
 conf="$HOME/.kcb"
 
-function usage() {
+usage() {
 echo -n "Author: alanndz
 Usage: $(basename "$0") [OPTIONS] [COMMAND]
 
@@ -25,17 +25,37 @@ Options:
  -e | --env       <Env>
  -t | --telegram  <Chat id> <telegram bot>
  -r | --regen     : Regenerate configs
+ -p | --compiler  <gcc/clang> default clang
  -l | --lto       : Build using full LTO
  -h | --help      : Show usage
 "
 exit
 }
 
-function _conf() {
+_conf() {
     mkdir -p $conf
     echo "$(openssl enc -base64 <<< ${1})" > $conf/.chat_id
     echo "$(openssl enc -base64 <<< ${2})" > $conf/.token
     exit
+}
+
+sendInfo() {
+    if [[ ! -n $CHAT_ID || ! -n $TOKEN ]]; then return; fi
+    curl -s -X POST https://api.telegram.org/bot$TOKEN/sendMessage -d chat_id=$CHAT_ID -d "parse_mode=HTML" -d text="$(
+            for POST in "${@}"; do
+                echo "${POST}"
+            done
+        )"
+&>/dev/null
+}
+
+push() {
+    if [[ ! -n $CHAT_ID || ! -n $TOKEN ]]; then return; fi
+    curl -F document=@"$1" "https://api.telegram.org/bot$TOKEN/sendDocument" \
+		-F chat_id="$CHAT_ID" \
+		-F "disable_web_page_preview=true" \
+		-F "parse_mode=html" \
+		-F caption="Build took $(($DIFF / 60)) minute(s) and $(($DIFF % 60)) second(s). | #aLn | <b>vayu</b>"
 }
 
 while (( ${#} )); do
@@ -49,6 +69,7 @@ while (( ${#} )); do
        "-e"|"--env") shift; ENV=${1} ;;
        "-r"|"--regen") REGEN=true ;;
        "-t"|"--telegram") shift; _conf ${1} ${2}; shift;;
+       "-p"|"--compiler") shift; COMPILER=${1}; shift;;
        "-l"|"--lto") LTO=true ;;
        "-h"|"--help") usage ;;
   esac
@@ -74,40 +95,41 @@ DEVICE="vayu"
 CONFIG=${CONFIG:-vayu_defconfig}
 CODENAME=${CODENAME:--Testing}
 JOBS=${JOBS:-$(nproc --all)}
+COMPILER=${COMPILER:-clang}
 CHAT_ID="$(openssl enc -base64 -d <<< `cat $conf/.chat_id`)"
 TOKEN="$(openssl enc -base64 -d <<< `cat $conf/.token`)"
 DEVELOPER="alanndz"
 HOST="noob_vayu-dev"
 AK_BRANCH="vayu"
 
-if [[ ! -d $TC/gcc64 || ! -d $TC/gcc32 ||  ! -d $AK ]]; then
-    # git clone https://gitlab.com/alanndz/clang-aosp $TC/clang --depth=1 --no-tags --single-branch
-    # git clone https://android.googlesource.com/platform/prebuilts/gas/linux-x86/ -b master $TC/gcc --depth=1 --single-branch --no-tags
-    #git clone https://github.com/arter97/arm64-gcc --depth=1 $TC/gcc64
-    #git clone https://github.com/arter97/arm32-gcc --depth=1 $TC/gcc32
-    git clone https://github.com/silont-project/aarch64-elf-gcc -b arm64/11 --depth=1 $TC/gcc64
-    git clone https://github.com/silont-project/arm-eabi-gcc -b arm/11 --depth=1 $TC/gcc32 
-    git clone https://github.com/alanndz/AnyKernel3 -b $AK_BRANCH ${AK}
+if [[ ${COMPILER} == "clang" ]]; then
+  git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 --depth=1 --no-tags --single-branch -b master $TC/dcl/clang
+  git clone https://github.com/mvaisakh/gcc-arm64 --depth=1 --no-tags --single-branch $TC/dcl/gcc64
+  git clone https://github.com/mvaisakh/gcc-arm --depth=1 --no-tags --single-branch $TC/dcl/gcc32
+
+  CL="$TC/dcl/clang/clang-r510928"
+  export PATH="${CL}/bin:$PATH"
+  export LD_LIBRARY_PATH="${Cl}/lib:$LD_LIBRARY_PATH"
+  KBUILD_COMPILER_STRING=$("${CL}/bin/clang" --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
+  GCC64=$(ls ${TC}/dcl/gcc64/bin/aarch64*-gcc | sed 's/gcc$//')
+  GCC32=$(ls ${TC}/dcl/gcc32/bin/arm*-gcc | sed 's/gcc$//')
+  ENV="CC=clang LLVM=1"
+
+elif [[ ${COMPILER} == "gcc" ]]; then
+  CL="$TC/gc/gcc64"
+  git clone https://github.com/silont-project/aarch64-elf-gcc -b arm64/11 --depth=1 $TC/gcc/gcc64
+  git clone https://github.com/silont-project/arm-eabi-gcc -b arm/11 --depth=1 $TC/gcc/gcc32
+
+  export PATH="${CL}/bin:$PATH"
+  KBUILD_COMPILER_STRING=$(${TC}/gcc64/bin/aarch64*-elf-gcc --version | head -n 1)
+  GCC64=$(ls ${TC}/gcc/gcc64/bin/aarch64*-gcc | sed 's/gcc$//')
+  GCC32=$(ls ${TC}/gcc/gcc32/bin/arm*-gcc | sed 's/gcc$//')
+  ENV="CROSS_COMPILE_COMPAT=${GCC32}"
 fi
 
-function sendInfo() {
-    if [[ ! -n $CHAT_ID || ! -n $TOKEN ]]; then return; fi
-    curl -s -X POST https://api.telegram.org/bot$TOKEN/sendMessage -d chat_id=$CHAT_ID -d "parse_mode=HTML" -d text="$(
-            for POST in "${@}"; do
-                echo "${POST}"
-            done
-        )"
-&>/dev/null
-}
-
-function push() {
-    if [[ ! -n $CHAT_ID || ! -n $TOKEN ]]; then return; fi
-    curl -F document=@"$1" "https://api.telegram.org/bot$TOKEN/sendDocument" \
-		-F chat_id="$CHAT_ID" \
-		-F "disable_web_page_preview=true" \
-		-F "parse_mode=html" \
-		-F caption="Build took $(($DIFF / 60)) minute(s) and $(($DIFF % 60)) second(s). | #aLn | <b>vayu</b>"
-}
+if [[ -d $AK ]]; then
+  git clone https://github.com/alanndz/AnyKernel3 -b $AK_BRANCH ${AK}
+fi
 
 # Setup name
 GIT="$(git log --pretty=format:'%h' -1)"
@@ -121,25 +143,14 @@ LOGE=$(echo ${ZIP_NAME} | sed "s/.zip/.error.log/")
 IMG="$KDIR/out/arch/arm64/boot/Image"
 DTBO="$KDIR/out/arch/arm64/boot/dtbo.img"
 DTB="$KDIR/out/arch/arm64/boot/dts/qcom"
-CL="$TC/gcc64"
-export PATH="${TC}/gcc64/bin:${TC}/gcc32/bin:$PATH"
-# export LD_LIBRARY_PATH="${CL}/lib:$LD_LIBRARY_PATH"
-KBUILD_COMPILER_STRING=$(${TC}/gcc64/bin/aarch64*-elf-gcc --version | head -n 1)
-GCC64=$(ls ${TC}/gcc64/bin/aarch64*-gcc | sed 's/gcc$//')
-GCC32=$(ls ${TC}/gcc32/bin/arm*-gcc | sed 's/gcc$//')
 
-START=$(date +"%s")
-
-disable_lto() {
-  scripts/config --file out/.config -e CONFIG_THINLTO
-}
-
-enable_dtbo() {
-  scripts/config --file out/.config -e CONFIG_BUILD_ARM64_DTBO_IMG
-}
-
-disable_auto_localv() {
-  scripts/config --file out/.config -d CONFIG_LOCALVERSION_AUTO
+set_defconfig() {
+  case ${1} in
+    enable)
+      scripts/config --file out/.config -e ${2} ;;
+    disable)
+      scripts/config --file out/.config -d ${2} ;;
+  esac
 }
 
 xcache() {
@@ -150,18 +161,19 @@ xcache() {
   # ccache -o compression=true
 }
 
-xcache
-
 m() {
   make -j${JOBS} O=out \
                         ARCH=arm64 \
                         LOCALVERSION=${KVERSION} \
                         CROSS_COMPILE="${GCC64}" \
                         CROSS_COMPILE_ARM32="${GCC32}" \
-                        CROSS_COMPILE_COMPAT="${GCC32}" \
                         ${ENV} \
                         ${@}
 }
+
+START=$(date +"%s")
+
+# xcache
 
 if [[ -n ${REGEN} ]]; then
   m $CONFIG
@@ -182,9 +194,9 @@ rm -rf ${IMG}
 rm -rf ${DTBO}
 
 m $CONFIG > /dev/null
-if [[ ! -n $LTO ]]; then disable_lto; fi
-enable_dtbo
-disable_auto_localv
+if [[ ! -n $LTO ]]; then set_defconfig enable CONFIG_THINLTO; fi
+set_defconfig enable CONFIG_BUILD_ARM64_DTBO_IMG
+set_defconfig disable CONFIG_LOCALVERSION_AUTO
 m > >(tee out/${LOG}) 2> >(tee out/${LOGE} >&2)
 
 END=$(date +"%s")
