@@ -103,11 +103,12 @@ HOST="noob_vayu-dev"
 AK_BRANCH="vayu"
 
 if [[ ${COMPILER} == "clang" ]]; then
-  git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 --depth=1 --no-tags --single-branch -b master $TC/dcl/clang
+  # git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 --depth=1 --no-tags --single-branch -b master $TC/dcl/clang
+  git clone https://gitlab.com/alanndz/clang-aosp.git -b main --depth=1 --no-tags --single-branch $TC/dcl/clang
   git clone https://github.com/mvaisakh/gcc-arm64 --depth=1 --no-tags --single-branch $TC/dcl/gcc64
   git clone https://github.com/mvaisakh/gcc-arm --depth=1 --no-tags --single-branch $TC/dcl/gcc32
 
-  CL="$TC/dcl/clang/clang-r510928"
+  CL="$TC/dcl/clang"
   export PATH="${CL}/bin:$PATH"
   export LD_LIBRARY_PATH="${Cl}/lib:$LD_LIBRARY_PATH"
   KBUILD_COMPILER_STRING=$("${CL}/bin/clang" --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
@@ -127,7 +128,7 @@ elif [[ ${COMPILER} == "gcc" ]]; then
   ENV="CROSS_COMPILE_COMPAT=${GCC32}"
 fi
 
-if [[ -d $AK ]]; then
+if [[ ! -d $AK ]]; then
   git clone https://github.com/alanndz/AnyKernel3 -b $AK_BRANCH ${AK}
 fi
 
@@ -197,7 +198,12 @@ m $CONFIG > /dev/null
 if [[ ! -n $LTO ]]; then set_defconfig enable CONFIG_THINLTO; fi
 set_defconfig enable CONFIG_BUILD_ARM64_DTBO_IMG
 set_defconfig disable CONFIG_LOCALVERSION_AUTO
-m > >(tee out/${LOG}) 2> >(tee out/${LOGE} >&2)
+
+if [[ ${COMPILER} == "clang" ]]; then
+	m AR=llvm-ar LLVM_NM=llvm-nm OBJCOPY=llvm-objcopy LD=ld.lld NM=llvm-nm LLVM=1 LLVM_IAS=1 CC=clang > >(tee out/${LOG}) 2> >(tee out/${LOGE} >&2)
+else
+	m > >(tee out/${LOG}) 2> >(tee out/${LOGE} >&2)
+fi
 
 END=$(date +"%s")
 DIFF=$(($END - $START))
