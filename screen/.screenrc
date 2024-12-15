@@ -1,0 +1,23 @@
+# C-a :source .screenrc
+
+term screen-256color
+
+termcapinfo xterm* ti@:te@
+startup_message off
+vbell off
+autodetach on
+altscreen on
+# shelltitle "$ |bash"
+defscrollback 10000
+defutf8 on
+nonblock on
+multiuser on
+
+bind    ^A      next
+# Display $USER and screen titles in a neat way :P
+# caption always "%{=b dy}{ %{= dm}${USER} %{=b dy}}%={ %?%{= dc}%-Lw%?%{+b dy}(%{-b r}%n:%t%{+b dy})%?(%u)%?%{-dc}%?%{= dc}%+Lw%? %{=b dy}}"
+
+hardstatus alwayslastline
+hardstatus string '%{= kG}[ %{G}%H ][%=%{=kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%=][%{B}%Y-%m-%d %{W}%c %{g}]'
+
+shell /usr/bin/fish
